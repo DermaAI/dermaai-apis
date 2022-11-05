@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
 import numpy as np
-import tensorflow as tf
+import tensorflow_cpu as tf
 from PIL import Image
 from io import BytesIO
 # load api
