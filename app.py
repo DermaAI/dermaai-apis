@@ -7,20 +7,30 @@ from io import BytesIO
 # load api
 app = FastAPI()
 
+# load model for prediction
+# Load the TFLite model and allocate tensors.
+interpreter1 = tf.lite.Interpreter(model_path="models/main-model1.tflite")
+interpreter1.allocate_tensors()
+
+# Get input and output tensors.
+input_details1 = interpreter1.get_input_details()
+output_details1 = interpreter1.get_output_details()
+
+# load model for prediction
+# Load the TFLite model and allocate tensors.
+interpreter2 = tf.lite.Interpreter(model_path="models/second-model.tflite")
+interpreter2.allocate_tensors()
+
+# Get input and output tensors.
+input_details2 = interpreter2.get_input_details()
+output_details2 = interpreter2.get_output_details()
+
 
 def mainPredict(image: Image.Image):
     image = np.asarray(image.resize((224, 224)), dtype=np.float32)[..., :3]
     image = np.expand_dims(image, 0)
+    image=image/255
     images = np.vstack([image])
-
-    # load model for prediction
-    # Load the TFLite model and allocate tensors.
-    interpreter1 = tf.lite.Interpreter(model_path="models/main-model1.tflite")
-    interpreter1.allocate_tensors()
-
-    # Get input and output tensors.
-    input_details1 = interpreter1.get_input_details()
-    output_details1 = interpreter1.get_output_details()
 
     # # Test the model on random input data.
     input_shape = input_details1[0]['shape']
@@ -31,27 +41,16 @@ def mainPredict(image: Image.Image):
     output_data = interpreter1.get_tensor(output_details1[0]['index'])
     return {
         "prediction": str(np.argmax(output_data)),
-        "all": str(output_data)
+        "confidence": str(np.amax(output_data)),
+        "all": str(output_data),
     }
 
 # method to predict cancer
-
-
 def cancerPredict(image: Image.Image):
     image = np.asarray(image.resize((224, 224)), dtype=np.float32)[..., :3]
     image = np.expand_dims(image, 0)
+    image=image/255
     images = np.vstack([image])
-
-    # load model for prediction
-    # Load the TFLite model and allocate tensors.
-    interpreter2 = tf.lite.Interpreter(model_path="models/second-model.tflite")
-    interpreter2.allocate_tensors()
-
-    # Get input and output tensors.
-    input_details2 = interpreter2.get_input_details()
-    output_details2 = interpreter2.get_output_details()
-
-    # method to predict main disease
 
     # # Test the model on random input data.
     input_shape = input_details2[0]['shape']
@@ -62,6 +61,7 @@ def cancerPredict(image: Image.Image):
     output_data = interpreter2.get_tensor(output_details2[0]['index'])
     return {
         "prediction": str(np.argmax(output_data)),
+        "confidence": str(np.amax(output_data)),
         "all": str(output_data)
     }
 
