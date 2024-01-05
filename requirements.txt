@@ -11,3 +11,4 @@ uvloop
 httptools
 tensorflow
 pillow
+python-multipart
