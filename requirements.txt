@@ -7,7 +7,6 @@ fastapi
 joblib
 uvicorn
 gunicorn==19.9.0
-uvloop
 httptools
 tensorflow
 pillow
