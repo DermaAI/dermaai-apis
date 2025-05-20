@@ -1,0 +1,61 @@
+service: dermaai-api
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: "arn:aws:s3:::dermaai-images/*"
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "*"
+
+functions:
+  predictMain:
+    handler: lambda_functions/predict_main.handler
+    events:
+      - http:
+          path: predict/main
+          method: post
+          cors: true
+    environment:
+      MONGODB_URI: ${ssm:/dermaai/mongodb/uri}
+      MODEL_BUCKET: dermaai-models
+      IMAGE_BUCKET: dermaai-images
+
+  predictCancer:
+    handler: lambda_functions/predict_cancer.handler
+    events:
+      - http:
+          path: predict/cancer
+          method: post
+          cors: true
+    environment:
+      MONGODB_URI: ${ssm:/dermaai/mongodb/uri}
+      MODEL_BUCKET: dermaai-models
+      IMAGE_BUCKET: dermaai-images
+
+resources:
+  Resources:
+    DermaAIBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: dermaai-images
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256 
